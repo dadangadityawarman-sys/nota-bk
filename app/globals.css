@@ -159,3 +159,74 @@ button.submit:active { background: var(--navy-dark); }
   text-align: center;
 }
 .error-text { color: var(--red); font-size: 13px; margin-bottom: 10px; }
+
+/* Modal & Action Buttons */
+.btn-action {
+  background: var(--gray);
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-action:hover { background: #e0e0e0; }
+.btn-action.btn-danger { color: var(--red); background: var(--red-bg); border-color: #ffcdd2; }
+.btn-action.btn-danger:hover { background: #ef9a9a; }
+
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 16px;
+}
+.modal-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+.modal-header h3 { margin: 0; color: var(--navy); font-size: 18px; }
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--muted);
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.btn-secondary {
+  flex: 1;
+  padding: 12px;
+  background: var(--gray);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
