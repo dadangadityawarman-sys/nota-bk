@@ -18,7 +18,9 @@ type Nota = {
 export default function NotaList({ notas }: { notas: Nota[] }) {
   const [query, setQuery] = useState("");
   const [editingNota, setEditingNota] = useState<Nota | null>(null);
-  const [printingNota, setPrintingNota] = useState<Nota | null>(null);
+  const [sharingNota, setSharingNota] = useState<Nota | null>(null);
+  const [activeTab, setActiveTab] = useState<"wa" | "card">("wa");
+  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -77,8 +79,34 @@ export default function NotaList({ notas }: { notas: Nota[] }) {
     return d.toISOString().split("T")[0];
   }
 
-  function handlePrint() {
-    window.print();
+  function generateWaText(n: Nota) {
+    const dateFormatted = new Date(n.tanggal).toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+    const statusEmoji = n.status === "Lunas" ? "✅ *LUNAS*" : "⏳ *BELUM LUNAS*";
+    const ketText = n.keterangan ? `\n📝 *Ket:* ${n.keterangan}` : "";
+
+    return `🧾 *NOTA PENJUALAN - BUANA KARYA*
+----------------------------------------
+📌 *No. Nota:* #${n.nomorNota}
+📅 *Tanggal:* ${dateFormatted}
+👤 *Customer:* ${n.customer}
+
+📦 *Barang:* ${n.barang}
+📐 *Volume:* ${n.volume}
+💰 *Total:* Rp ${n.harga.toLocaleString("id-ID")}
+📌 *Status:* ${statusEmoji}${ketText}
+----------------------------------------
+Terima kasih atas kerja samanya! 🙏
+_Buana Karya - Pasir, Batu & Material_`;
+  }
+
+  function copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -121,10 +149,10 @@ export default function NotaList({ notas }: { notas: Nota[] }) {
               <div style={{ display: "flex", gap: "6px" }}>
                 <button
                   className="btn-action btn-primary"
-                  onClick={() => setPrintingNota(n)}
-                  title="Cetak atau preview PDF Nota"
+                  onClick={() => { setSharingNota(n); setActiveTab("wa"); }}
+                  title="Bagikan via WA / Kartu Gambar"
                 >
-                  🖨️ Cetak / PDF
+                  📲 Bagikan / Nota
                 </button>
                 <button
                   className="btn-action"
@@ -234,88 +262,129 @@ export default function NotaList({ notas }: { notas: Nota[] }) {
         </div>
       )}
 
-      {/* Modal Cetak / Preview PDF Nota */}
-      {printingNota && (
-        <div className="modal-backdrop" onClick={() => setPrintingNota(null)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "550px" }}>
+      {/* Modal Bagikan WA & Kartu Nota Gambar */}
+      {sharingNota && (
+        <div className="modal-backdrop" onClick={() => setSharingNota(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px" }}>
             <div className="modal-header">
-              <h3>🖨️ Preview & Cetak Nota</h3>
-              <button className="btn-close" onClick={() => setPrintingNota(null)}>✕</button>
+              <h3>📲 Bagikan Nota #{sharingNota.nomorNota}</h3>
+              <button className="btn-close" onClick={() => setSharingNota(null)}>✕</button>
             </div>
 
-            {/* Area Kertas Nota Fisik */}
-            <div className="receipt-paper">
-              <div className="receipt-header">
-                <h2>BUANA KARYA</h2>
-                <p>Pasir, Batu & Material Bangunan</p>
-                <p style={{ fontSize: "11px", marginTop: "2px" }}>NOTA PENJUALAN RESMI</p>
-              </div>
-
-              <div className="receipt-info-grid">
-                <div>
-                  <strong>No. Nota:</strong> #{printingNota.nomorNota}<br />
-                  <strong>Tanggal:</strong> {new Date(printingNota.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <strong>Kepada Yth:</strong><br />
-                  {printingNota.customer}
-                </div>
-              </div>
-
-              <table className="receipt-table">
-                <thead>
-                  <tr>
-                    <th>Item Barang</th>
-                    <th>Vol</th>
-                    <th className="right">Total Harga</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>{printingNota.barang}</td>
-                    <td>{printingNota.volume}</td>
-                    <td className="right">Rp {printingNota.harga.toLocaleString("id-ID")}</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <div className="receipt-total">
-                TOTAL: Rp {printingNota.harga.toLocaleString("id-ID")}
-              </div>
-
-              <div style={{ marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  {printingNota.keterangan && (
-                    <span style={{ fontSize: "11px", color: "#555" }}>
-                      *Ket: {printingNota.keterangan}
-                    </span>
-                  )}
-                </div>
-                <div className={`receipt-stamp ${printingNota.status === "Lunas" ? "lunas" : "belum"}`}>
-                  {printingNota.status === "Lunas" ? "✓ LUNAS" : "✗ BELUM LUNAS"}
-                </div>
-              </div>
-
-              <div className="receipt-footer">
-                <div className="receipt-sign-box">
-                  Penerima,
-                  <div className="receipt-sign-line"></div>
-                </div>
-                <div className="receipt-sign-box">
-                  Hormat Kami,<br /><strong>Buana Karya</strong>
-                  <div className="receipt-sign-line"></div>
-                </div>
-              </div>
+            {/* Navigasi Tab (WA vs Gambar) */}
+            <div className="nav-links" style={{ marginBottom: "16px", padding: "4px" }}>
+              <a
+                href="#"
+                className={activeTab === "wa" ? "active" : ""}
+                onClick={(e) => { e.preventDefault(); setActiveTab("wa"); }}
+              >
+                💬 Format Chat WA
+              </a>
+              <a
+                href="#"
+                className={activeTab === "card" ? "active" : ""}
+                onClick={(e) => { e.preventDefault(); setActiveTab("card"); }}
+              >
+                🖼️ Kartu Nota (Screenshot)
+              </a>
             </div>
 
-            <div className="modal-actions">
-              <button type="button" className="btn-secondary" onClick={() => setPrintingNota(null)}>
-                Tutup
-              </button>
-              <button type="button" className="submit" onClick={handlePrint} style={{ flex: 1.5 }}>
-                🖨️ Cetak / Simpan ke PDF
-              </button>
-            </div>
+            {/* TAB 1: FORMAT CHAT WA */}
+            {activeTab === "wa" && (
+              <div>
+                <div className="wa-preview-box">
+                  <div className="wa-message-bubble">
+                    {generateWaText(sharingNota)}
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "10px", marginTop: "14px" }}>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => copyToClipboard(generateWaText(sharingNota))}
+                    style={{ flex: 1 }}
+                  >
+                    {copied ? "✅ Tersalin!" : "📋 Salin Teks WA"}
+                  </button>
+
+                  <a
+                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(generateWaText(sharingNota))}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ textDecoration: "none", flex: 1.2 }}
+                  >
+                    <button type="button" className="btn-wa">
+                      💬 Kirim ke WhatsApp
+                    </button>
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: KARTU NOTA VISUAL GAMBAR */}
+            {activeTab === "card" && (
+              <div>
+                <p style={{ fontSize: "12px", color: "var(--muted)", margin: "0 0 10px 0", textAlign: "center" }}>
+                  💡 <em>Tampilan kartu di bawah dirancang rapi. Tinggal <strong>Screenshot (Tangkap Layar)</strong> dari HP/Laptop untuk dijadikan gambar!</em>
+                </p>
+
+                <div className="nota-image-card">
+                  <div className="nota-image-header">
+                    <div>
+                      <h4 className="brand-title">BUANA KARYA</h4>
+                      <span className="brand-subtitle">Pasir, Batu & Material Bangunan</span>
+                    </div>
+                    <div style={{ textAlign: "right", fontSize: "12px", fontWeight: "bold", color: "var(--navy)" }}>
+                      NOTA PENJUALAN<br />
+                      <span style={{ fontSize: "14px" }}>#{sharingNota.nomorNota}</span>
+                    </div>
+                  </div>
+
+                  <div className="nota-image-body">
+                    <div className="nota-image-row">
+                      <span className="label">📅 Tanggal</span>
+                      <span className="val">
+                        {new Date(sharingNota.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
+                      </span>
+                    </div>
+                    <div className="nota-image-row">
+                      <span className="label">👤 Customer</span>
+                      <span className="val">{sharingNota.customer}</span>
+                    </div>
+                    <div className="nota-image-row">
+                      <span className="label">📦 Barang</span>
+                      <span className="val">{sharingNota.barang}</span>
+                    </div>
+                    <div className="nota-image-row">
+                      <span className="label">📐 Volume</span>
+                      <span className="val">{sharingNota.volume}</span>
+                    </div>
+                    {sharingNota.keterangan && (
+                      <div className="nota-image-row">
+                        <span className="label">📝 Keterangan</span>
+                        <span className="val">{sharingNota.keterangan}</span>
+                      </div>
+                    )}
+
+                    <div className="nota-image-total">
+                      <span>TOTAL BAYAR</span>
+                      <span>Rp {sharingNota.harga.toLocaleString("id-ID")}</span>
+                    </div>
+
+                    <div className={`nota-image-stamp-badge ${sharingNota.status === "Lunas" ? "lunas" : "belum"}`}>
+                      {sharingNota.status === "Lunas" ? "✅ STATUS: LUNAS" : "⏳ STATUS: BELUM LUNAS"}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="modal-actions">
+                  <button type="button" className="btn-secondary" onClick={() => setSharingNota(null)}>
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
