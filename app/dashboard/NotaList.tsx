@@ -18,6 +18,7 @@ type Nota = {
 export default function NotaList({ notas }: { notas: Nota[] }) {
   const [query, setQuery] = useState("");
   const [editingNota, setEditingNota] = useState<Nota | null>(null);
+  const [printingNota, setPrintingNota] = useState<Nota | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -76,6 +77,10 @@ export default function NotaList({ notas }: { notas: Nota[] }) {
     return d.toISOString().split("T")[0];
   }
 
+  function handlePrint() {
+    window.print();
+  }
+
   return (
     <div className="card">
       <div className="search-box">
@@ -114,6 +119,13 @@ export default function NotaList({ notas }: { notas: Nota[] }) {
             <div className="harga" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span>Rp {n.harga.toLocaleString("id-ID")}</span>
               <div style={{ display: "flex", gap: "6px" }}>
+                <button
+                  className="btn-action btn-primary"
+                  onClick={() => setPrintingNota(n)}
+                  title="Cetak atau preview PDF Nota"
+                >
+                  🖨️ Cetak / PDF
+                </button>
                 <button
                   className="btn-action"
                   onClick={() => setEditingNota({ ...n, tanggal: formatDateForInput(n.tanggal) })}
@@ -218,6 +230,92 @@ export default function NotaList({ notas }: { notas: Nota[] }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Cetak / Preview PDF Nota */}
+      {printingNota && (
+        <div className="modal-backdrop" onClick={() => setPrintingNota(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "550px" }}>
+            <div className="modal-header">
+              <h3>🖨️ Preview & Cetak Nota</h3>
+              <button className="btn-close" onClick={() => setPrintingNota(null)}>✕</button>
+            </div>
+
+            {/* Area Kertas Nota Fisik */}
+            <div className="receipt-paper">
+              <div className="receipt-header">
+                <h2>BUANA KARYA</h2>
+                <p>Pasir, Batu & Material Bangunan</p>
+                <p style={{ fontSize: "11px", marginTop: "2px" }}>NOTA PENJUALAN RESMI</p>
+              </div>
+
+              <div className="receipt-info-grid">
+                <div>
+                  <strong>No. Nota:</strong> #{printingNota.nomorNota}<br />
+                  <strong>Tanggal:</strong> {new Date(printingNota.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <strong>Kepada Yth:</strong><br />
+                  {printingNota.customer}
+                </div>
+              </div>
+
+              <table className="receipt-table">
+                <thead>
+                  <tr>
+                    <th>Item Barang</th>
+                    <th>Vol</th>
+                    <th className="right">Total Harga</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{printingNota.barang}</td>
+                    <td>{printingNota.volume}</td>
+                    <td className="right">Rp {printingNota.harga.toLocaleString("id-ID")}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div className="receipt-total">
+                TOTAL: Rp {printingNota.harga.toLocaleString("id-ID")}
+              </div>
+
+              <div style={{ marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  {printingNota.keterangan && (
+                    <span style={{ fontSize: "11px", color: "#555" }}>
+                      *Ket: {printingNota.keterangan}
+                    </span>
+                  )}
+                </div>
+                <div className={`receipt-stamp ${printingNota.status === "Lunas" ? "lunas" : "belum"}`}>
+                  {printingNota.status === "Lunas" ? "✓ LUNAS" : "✗ BELUM LUNAS"}
+                </div>
+              </div>
+
+              <div className="receipt-footer">
+                <div className="receipt-sign-box">
+                  Penerima,
+                  <div className="receipt-sign-line"></div>
+                </div>
+                <div className="receipt-sign-box">
+                  Hormat Kami,<br /><strong>Buana Karya</strong>
+                  <div className="receipt-sign-line"></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button type="button" className="btn-secondary" onClick={() => setPrintingNota(null)}>
+                Tutup
+              </button>
+              <button type="button" className="submit" onClick={handlePrint} style={{ flex: 1.5 }}>
+                🖨️ Cetak / Simpan ke PDF
+              </button>
+            </div>
           </div>
         </div>
       )}
