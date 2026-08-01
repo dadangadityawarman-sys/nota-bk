@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Nota {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  nomorNota  String
+  tanggal    DateTime
+  customer   String
+  barang     String
+  volume     String
+  harga      Int
+  status     String   // "Lunas" | "Belum Lunas"
+  keterangan String?
+  fotoUrl    String?
+}
