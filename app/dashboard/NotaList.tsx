@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { toPng } from "html-to-image";
 
 type Nota = {
   id: number;
@@ -19,9 +20,11 @@ export default function NotaList({ notas }: { notas: Nota[] }) {
   const [query, setQuery] = useState("");
   const [editingNota, setEditingNota] = useState<Nota | null>(null);
   const [sharingNota, setSharingNota] = useState<Nota | null>(null);
-  const [activeTab, setActiveTab] = useState<"wa" | "card">("wa");
+  const [activeTab, setActiveTab] = useState<"wa" | "card">("card");
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const filtered = useMemo(() => {
@@ -109,6 +112,23 @@ _Buana Karya - Pasir, Batu & Material_`;
     setTimeout(() => setCopied(false), 2000);
   }
 
+  async function handleDownloadImage() {
+    if (!cardRef.current || !sharingNota) return;
+    setDownloading(true);
+    try {
+      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
+      const link = document.createElement("a");
+      link.download = `Nota_${sharingNota.nomorNota}_${sharingNota.customer.replace(/\s+/g, "_")}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error(err);
+      alert("Gagal mengunduh gambar. Silakan gunakan screenshot manual.");
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   return (
     <div className="card">
       <div className="search-box">
@@ -149,10 +169,10 @@ _Buana Karya - Pasir, Batu & Material_`;
               <div style={{ display: "flex", gap: "6px" }}>
                 <button
                   className="btn-action btn-primary"
-                  onClick={() => { setSharingNota(n); setActiveTab("wa"); }}
-                  title="Bagikan via WA / Kartu Gambar"
+                  onClick={() => { setSharingNota(n); setActiveTab("card"); }}
+                  title="Bagikan Gambar Nota / Chat WA"
                 >
-                  📲 Bagikan / Nota
+                  🖼️ Kartu Nota / WA
                 </button>
                 <button
                   className="btn-action"
@@ -262,34 +282,109 @@ _Buana Karya - Pasir, Batu & Material_`;
         </div>
       )}
 
-      {/* Modal Bagikan WA & Kartu Nota Gambar */}
+      {/* Modal Bagikan Gambar & Text WA */}
       {sharingNota && (
         <div className="modal-backdrop" onClick={() => setSharingNota(null)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px" }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
             <div className="modal-header">
-              <h3>📲 Bagikan Nota #{sharingNota.nomorNota}</h3>
+              <h3>Nota #{sharingNota.nomorNota}</h3>
               <button className="btn-close" onClick={() => setSharingNota(null)}>✕</button>
             </div>
 
-            {/* Navigasi Tab (WA vs Gambar) */}
+            {/* Navigasi Tab */}
             <div className="nav-links" style={{ marginBottom: "16px", padding: "4px" }}>
-              <a
-                href="#"
-                className={activeTab === "wa" ? "active" : ""}
-                onClick={(e) => { e.preventDefault(); setActiveTab("wa"); }}
-              >
-                💬 Format Chat WA
-              </a>
               <a
                 href="#"
                 className={activeTab === "card" ? "active" : ""}
                 onClick={(e) => { e.preventDefault(); setActiveTab("card"); }}
               >
-                🖼️ Kartu Nota (Screenshot)
+                🖼️ Gambar Nota (PNG)
+              </a>
+              <a
+                href="#"
+                className={activeTab === "wa" ? "active" : ""}
+                onClick={(e) => { e.preventDefault(); setActiveTab("wa"); }}
+              >
+                💬 Teks Chat WA
               </a>
             </div>
 
-            {/* TAB 1: FORMAT CHAT WA */}
+            {/* TAB 1: KARTU GAMBAR PROFESSIONAL */}
+            {activeTab === "card" && (
+              <div>
+                {/* Visual Card Element */}
+                <div className="nota-image-card" ref={cardRef}>
+                  <div className="nota-image-card-header">
+                    <div>
+                      <h4 className="brand">BUANA KARYA</h4>
+                      <div className="tagline">Material & Pasir Bangunan</div>
+                    </div>
+                    <div className="receipt-no-badge">
+                      #{sharingNota.nomorNota}
+                    </div>
+                  </div>
+
+                  <table className="nota-image-info-table">
+                    <tbody>
+                      <tr>
+                        <td className="lbl">Tanggal</td>
+                        <td className="val">
+                          {new Date(sharingNota.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="lbl">Customer</td>
+                        <td className="val">{sharingNota.customer}</td>
+                      </tr>
+                      <tr>
+                        <td className="lbl">Barang</td>
+                        <td className="val">{sharingNota.barang}</td>
+                      </tr>
+                      <tr>
+                        <td className="lbl">Volume</td>
+                        <td className="val">{sharingNota.volume}</td>
+                      </tr>
+                      {sharingNota.keterangan && (
+                        <tr>
+                          <td className="lbl">Keterangan</td>
+                          <td className="val">{sharingNota.keterangan}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+
+                  <div className="nota-image-card-total">
+                    <span className="total-lbl">TOTAL HARGA</span>
+                    <span className="total-val">Rp {sharingNota.harga.toLocaleString("id-ID")}</span>
+                  </div>
+
+                  <div className={`nota-image-card-status ${sharingNota.status === "Lunas" ? "lunas" : "belum"}`}>
+                    {sharingNota.status === "Lunas" ? "✓ LUNAS" : "⏳ BELUM LUNAS"}
+                  </div>
+
+                  <div className="nota-image-card-footer">
+                    Terima kasih atas kerja samanya · Buana Karya
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
+                  <button type="button" className="btn-secondary" onClick={() => setSharingNota(null)}>
+                    Tutup
+                  </button>
+                  <button
+                    type="button"
+                    className="submit"
+                    style={{ flex: 2 }}
+                    onClick={handleDownloadImage}
+                    disabled={downloading}
+                  >
+                    {downloading ? "Mengunduh..." : "📥 Unduh Gambar (PNG)"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: TEKS CHAT WA */}
             {activeTab === "wa" && (
               <div>
                 <div className="wa-preview-box">
@@ -318,70 +413,6 @@ _Buana Karya - Pasir, Batu & Material_`;
                       💬 Kirim ke WhatsApp
                     </button>
                   </a>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 2: KARTU NOTA VISUAL GAMBAR */}
-            {activeTab === "card" && (
-              <div>
-                <p style={{ fontSize: "12px", color: "var(--muted)", margin: "0 0 10px 0", textAlign: "center" }}>
-                  💡 <em>Tampilan kartu di bawah dirancang rapi. Tinggal <strong>Screenshot (Tangkap Layar)</strong> dari HP/Laptop untuk dijadikan gambar!</em>
-                </p>
-
-                <div className="nota-image-card">
-                  <div className="nota-image-header">
-                    <div>
-                      <h4 className="brand-title">BUANA KARYA</h4>
-                      <span className="brand-subtitle">Pasir, Batu & Material Bangunan</span>
-                    </div>
-                    <div style={{ textAlign: "right", fontSize: "12px", fontWeight: "bold", color: "var(--navy)" }}>
-                      NOTA PENJUALAN<br />
-                      <span style={{ fontSize: "14px" }}>#{sharingNota.nomorNota}</span>
-                    </div>
-                  </div>
-
-                  <div className="nota-image-body">
-                    <div className="nota-image-row">
-                      <span className="label">📅 Tanggal</span>
-                      <span className="val">
-                        {new Date(sharingNota.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
-                      </span>
-                    </div>
-                    <div className="nota-image-row">
-                      <span className="label">👤 Customer</span>
-                      <span className="val">{sharingNota.customer}</span>
-                    </div>
-                    <div className="nota-image-row">
-                      <span className="label">📦 Barang</span>
-                      <span className="val">{sharingNota.barang}</span>
-                    </div>
-                    <div className="nota-image-row">
-                      <span className="label">📐 Volume</span>
-                      <span className="val">{sharingNota.volume}</span>
-                    </div>
-                    {sharingNota.keterangan && (
-                      <div className="nota-image-row">
-                        <span className="label">📝 Keterangan</span>
-                        <span className="val">{sharingNota.keterangan}</span>
-                      </div>
-                    )}
-
-                    <div className="nota-image-total">
-                      <span>TOTAL BAYAR</span>
-                      <span>Rp {sharingNota.harga.toLocaleString("id-ID")}</span>
-                    </div>
-
-                    <div className={`nota-image-stamp-badge ${sharingNota.status === "Lunas" ? "lunas" : "belum"}`}>
-                      {sharingNota.status === "Lunas" ? "✅ STATUS: LUNAS" : "⏳ STATUS: BELUM LUNAS"}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="modal-actions">
-                  <button type="button" className="btn-secondary" onClick={() => setSharingNota(null)}>
-                    Tutup
-                  </button>
                 </div>
               </div>
             )}

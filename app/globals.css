@@ -277,78 +277,118 @@ button.submit:active { background: var(--navy-dark); }
 }
 .btn-wa:hover { background: #128c7e; }
 
-/* Visual Image Receipt Card for Screenshots */
+/* Executive Visual Image Receipt Card */
 .nota-image-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border: 2px solid var(--navy);
+  background: #ffffff;
   border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  color: var(--text);
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(26, 35, 126, 0.12);
+  color: #212121;
   position: relative;
   overflow: hidden;
+  border: 1px solid #e0e6ed;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
-.nota-image-card::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 6px;
-  background: linear-gradient(90deg, var(--navy), #3f51b5);
-}
-.nota-image-header {
+.nota-image-card-header {
+  background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+  margin: -24px -24px 20px -24px;
+  padding: 20px 24px;
+  color: #ffffff;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid #e0e0e0;
-  padding-bottom: 12px;
-  margin-bottom: 14px;
 }
-.nota-image-header .brand-title {
-  font-size: 20px;
+.nota-image-card-header .brand {
+  font-size: 22px;
   font-weight: 900;
-  color: var(--navy);
+  letter-spacing: 1px;
   margin: 0;
+  color: #ffffff;
 }
-.nota-image-header .brand-subtitle {
+.nota-image-card-header .tagline {
   font-size: 11px;
-  color: var(--muted);
-  font-weight: 600;
+  color: #b0bec5;
+  margin-top: 2px;
 }
-.nota-image-body {
+.nota-image-card-header .receipt-no-badge {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.nota-image-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+.nota-image-info-table td {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f4f8;
   font-size: 14px;
 }
-.nota-image-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px dashed #e0e0e0;
+.nota-image-info-table .lbl {
+  color: #757575;
+  font-weight: 600;
+  width: 35%;
 }
-.nota-image-row .label { color: var(--muted); font-size: 13px; }
-.nota-image-row .val { font-weight: 700; color: var(--text); text-align: right; }
+.nota-image-info-table .val {
+  color: #212121;
+  font-weight: 700;
+}
 
-.nota-image-total {
-  background: #e8eaf6;
-  border-radius: 8px;
-  padding: 12px;
+.nota-image-card-total {
+  background: #f5f7fa;
+  border: 1px solid #e1e8ed;
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 14px;
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--navy);
+  margin-top: 16px;
 }
-.nota-image-stamp-badge {
-  text-align: center;
-  padding: 8px 16px;
-  border-radius: 8px;
+.nota-image-card-total .total-lbl {
+  font-size: 13px;
+  color: #546e7a;
+  font-weight: 700;
+}
+.nota-image-card-total .total-val {
+  font-size: 22px;
   font-weight: 900;
+  color: #1a237e;
+}
+
+.nota-image-card-status {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 800;
   font-size: 15px;
-  margin-top: 14px;
   letter-spacing: 1px;
 }
-.nota-image-stamp-badge.lunas { background: var(--green-bg); color: var(--green); border: 2px solid var(--green); }
-.nota-image-stamp-badge.belum { background: var(--red-bg); color: var(--red); border: 2px solid var(--red); }
+.nota-image-card-status.lunas {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+.nota-image-card-status.belum {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+.nota-image-card-footer {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 11px;
+  color: #90a4ae;
+  font-weight: 500;
+}
+
 
 .btn-action.btn-primary {
   background: #e8eaf6;
